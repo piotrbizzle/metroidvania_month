@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    // configurable
+    public Zone currentZone;
+    
     // constants
     private float speedForce = 300.0f;
     private float maxSpeed = 3.0f;
@@ -16,15 +19,15 @@ public class Player : MonoBehaviour
     private int _jumpsRemaining = 0;
     private int _maxJumps = 2;  // change this back to 1 if you hate fun
     private int _onGround = 0;
-    
+
     // Update is called once per frame
     void Update()
     {
-	MovePlayer();
+	this.MovePlayer();
+	this.CheckCurrentZone();
     }
 
-
-    void MovePlayer() 
+    private void MovePlayer() 
     {
 	// read inputs
         bool up = Input.GetKey("w");
@@ -54,9 +57,10 @@ public class Player : MonoBehaviour
 
 	// drop item
 	if (drop && !this.gameObject.GetComponent<Inventory>().IsEmpty()) {
-	    ZoneItem inventoryItem = this.gameObject.GetComponent<Inventory>().Pop(0);
+	    PickUpable inventoryItem = this.gameObject.GetComponent<Inventory>().Pop(0);
 	    GameObject addedGo = inventoryItem.AddToScreen();
 	    addedGo.transform.position = this.gameObject.transform.position + new Vector3(0.0f, 1.0f, 0.0f);
+	    addedGo.transform.parent = this.currentZone.gameObject.transform;
 
 	    // give it a bit of a toss
 	    Rigidbody2D inventoryItemRb = addedGo.GetComponent<Rigidbody2D>();
@@ -75,29 +79,57 @@ public class Player : MonoBehaviour
 	}
     }
 
-    // OnTriggerStay2D is called when this collides with another BoxCollider2D w/ isTrigger=true
+    // Check if we're in a new zone and update if needed
+    private void CheckCurrentZone() {
+	// TODO: add up and down zones also
+	if (this.transform.position.x < this.currentZone.gameObject.transform.position.x - this.currentZone.width / 2.0f) {
+	    if (this.currentZone.leftZone != null) {
+		if (this.currentZone.rightZone != null) {
+		    this.currentZone.rightZone.DeactivateAll();
+		}
+		this.currentZone = this.currentZone.leftZone;
+		if (this.currentZone.leftZone) {
+		    this.currentZone.leftZone.ActivateAll();
+		}
+	    }
+	}
+	else if (this.transform.position.x > this.currentZone.gameObject.transform.position.x + this.currentZone.width / 2.0f) {
+	    if (this.currentZone.rightZone != null) {
+		if (this.currentZone.leftZone != null) {	  
+		    this.currentZone.leftZone.DeactivateAll();
+		}
+		this.currentZone = this.currentZone.rightZone;
+		if (this.currentZone.rightZone) {
+		    this.currentZone.rightZone.ActivateAll();
+		}
+	    }
+	}
+    }
+    
+    // Ontriggerstay2d called when this collides with another BoxCollider2D w/ isTrigger=true
     void OnTriggerStay2D(Collider2D collider)
     {
 	// check if the thing you collider with is attached to a zone item
-	ZoneItem collidedZoneItem = collider.gameObject.transform.parent.gameObject.GetComponent<ZoneItem>();
-	if (collidedZoneItem == null) {
-	    return;
-	}
+	PickUpable collidedPickUpable = collider.gameObject.transform.parent.gameObject.GetComponent<PickUpable>();
+
+	Platform collidedPlatform = collider.gameObject.transform.parent.gameObject.GetComponent<Platform>();
 	
 	// reset jumps if it's a floor
 	// TODO: maybe move this to onTriggerEnter
 	// TODO: don't make this work for pickupable also
-	if ((collidedZoneItem.isPickUpable || collidedZoneItem.isFloor) && this.gameObject.GetComponent<Rigidbody2D>().velocity.y < 0.1) {
+	if ((collidedPickUpable != null || collidedPlatform != null) && this.gameObject.GetComponent<Rigidbody2D>().velocity.y < 0.1) {
 	    this._jumpsRemaining = this._maxJumps;
 	    this._onGround = 10;
 	}
 
 	// maybe pick up if it's an item
-	bool pickup = Input.GetKey("e");
-	if (pickup && collidedZoneItem != null && collidedZoneItem.isPickUpable) {
-	    bool added = this.gameObject.GetComponent<Inventory>().Add(collidedZoneItem);
-	    if (added) {
-		collidedZoneItem.RemoveFromScreen();
+	if (collidedPickUpable != null) {
+	    bool pickup = Input.GetKey("e");
+	    if (pickup) {
+		bool added = this.gameObject.GetComponent<Inventory>().Add(collidedPickUpable);
+		if (added) {
+		    collidedPickUpable.RemoveFromScreen();
+		}
 	    }
 	}
     }

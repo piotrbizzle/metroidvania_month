@@ -8,9 +8,9 @@ public class Inventory : MonoBehaviour
     private int capacity = 0;
 
     [SerializeField]
-    private List<ZoneItem> inventoryItems = new List<ZoneItem>();
+    private List<PickUpable> inventoryItems = new List<PickUpable>();
  
-    public bool Add(ZoneItem elt) {
+    public bool Add(PickUpable elt) {
 	if (this.inventoryItems.Count >= capacity) {
 	    return false;
 	}
@@ -18,8 +18,8 @@ public class Inventory : MonoBehaviour
 	return true;
     }
 
-    public ZoneItem Pop(int idx) {
-	ZoneItem elt = this.inventoryItems[idx];
+    public PickUpable Pop(int idx) {
+	PickUpable elt = this.inventoryItems[idx];
 	this.inventoryItems.RemoveAt(idx);
 	return elt;
     }
