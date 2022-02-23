@@ -15,11 +15,22 @@ public class Player : MonoBehaviour
     private float baseGroundBonus = 2.0f;
 
     private bool _facingRight = false;
+
     private bool _jumpKeyDown = false;
     private int _jumpsRemaining = 0;
     private int _maxJumps = 2;  // change this back to 1 if you hate fun
     private int _onGround = 0;
 
+    private bool _pickUpKeyDown = false;
+    private bool _pickingUp = false;
+
+    private bool _dropKeyDown = false;
+
+    void Start()
+    {
+	this.gameObject.layer = 6;
+    }
+    
     // Update is called once per frame
     void Update()
     {
@@ -34,7 +45,7 @@ public class Player : MonoBehaviour
 	bool down = Input.GetKey("s");
 	bool left = Input.GetKey("a");
 	bool right = Input.GetKey("d");
-
+	bool pickup = Input.GetKey("e");	
 	bool drop = Input.GetKey("q");
 	
 	// movement
@@ -55,9 +66,17 @@ public class Player : MonoBehaviour
 	}
 	this._jumpKeyDown = up;
 
+	// pick up item
+	if (!pickup) {
+	    this._pickingUp = false;
+	} else if (pickup && !this._pickUpKeyDown) {
+	    this._pickingUp = true;
+	}
+	this._pickUpKeyDown = pickup;
+	
 	// drop item
-	if (drop && !this.gameObject.GetComponent<Inventory>().IsEmpty()) {
-	    PickUpable inventoryItem = this.gameObject.GetComponent<Inventory>().Pop(0);
+	if (drop && !this._dropKeyDown && !this.gameObject.GetComponent<Inventory>().IsEmpty()) {
+	    PickUpable inventoryItem = this.gameObject.GetComponent<Inventory>().PopLast();
 	    GameObject addedGo = inventoryItem.AddToScreen();
 	    addedGo.transform.position = this.gameObject.transform.position + new Vector3(0.0f, 1.0f, 0.0f);
 	    addedGo.transform.parent = this.currentZone.gameObject.transform;
@@ -72,6 +91,7 @@ public class Player : MonoBehaviour
 	    float tossTorqueModifier = this._facingRight ? 5.0f : -5.0f;
 	    inventoryItemRb.AddTorque(tossTorqueModifier * rb.velocity.x);
 	}
+	this._dropKeyDown = drop;
 
 	// decrement onGround
 	if (this._onGround > 0) {
@@ -105,7 +125,7 @@ public class Player : MonoBehaviour
 	    }
 	}
     }
-    
+
     // Ontriggerstay2d called when this collides with another BoxCollider2D w/ isTrigger=true
     void OnTriggerStay2D(Collider2D collider)
     {
@@ -116,20 +136,17 @@ public class Player : MonoBehaviour
 	
 	// reset jumps if it's a floor
 	// TODO: maybe move this to onTriggerEnter
-	// TODO: don't make this work for pickupable also
-	if ((collidedPickUpable != null || collidedPlatform != null) && this.gameObject.GetComponent<Rigidbody2D>().velocity.y < 0.1) {
+	if (collidedPlatform != null && this.gameObject.GetComponent<Rigidbody2D>().velocity.y < 0.1) {
 	    this._jumpsRemaining = this._maxJumps;
 	    this._onGround = 10;
 	}
 
 	// maybe pick up if it's an item
-	if (collidedPickUpable != null) {
-	    bool pickup = Input.GetKey("e");
-	    if (pickup) {
-		bool added = this.gameObject.GetComponent<Inventory>().Add(collidedPickUpable);
-		if (added) {
-		    collidedPickUpable.RemoveFromScreen();
-		}
+	if (this._pickingUp && collidedPickUpable != null) {
+	    bool added = this.gameObject.GetComponent<Inventory>().Add(collidedPickUpable);
+	    if (added) {
+		collidedPickUpable.RemoveFromScreen();
+		this._pickingUp = false;
 	    }
 	}
     }

@@ -8,7 +8,8 @@ public class Zone : MonoBehaviour
     public Zone leftZone;
     public Zone rightZone;
     public bool isStartingZone;
-
+    public bool isActive = true;
+    
     // constants
     public float width = 20.5f; // fix the size of the zones to be less dumb
     
@@ -22,11 +23,20 @@ public class Zone : MonoBehaviour
 	foreach (Transform child in this.transform) {
 	    child.gameObject.SetActive(false);
 	}
+	this.isActive = false;
     }
 
     public void ActivateAll() {
 	foreach (Transform child in this.transform) {
 	    child.gameObject.SetActive(true);
+	}
+	this.isActive = true;
+    }
+
+    public void AddGameObject(GameObject go) {
+	go.transform.parent = this.gameObject.transform;
+	if (!this.isActive) {
+	    go.SetActive(false);
 	}
     }
 }
