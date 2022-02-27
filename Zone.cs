@@ -15,22 +15,15 @@ public class Zone : MonoBehaviour
     
     public void Start() {
 	if (!this.isStartingZone && (this.leftZone == null || !this.leftZone.isStartingZone) && (this.rightZone == null || !this.rightZone.isStartingZone)) {
-	    this.DeactivateAll();	    
+	    this.SetActive(false);	    
 	}
     }
 
-    public void DeactivateAll() {
+    public void SetActive(bool isActive) {
 	foreach (Transform child in this.transform) {
-	    child.gameObject.SetActive(false);
+	    child.gameObject.SetActive(isActive);
 	}
-	this.isActive = false;
-    }
-
-    public void ActivateAll() {
-	foreach (Transform child in this.transform) {
-	    child.gameObject.SetActive(true);
-	}
-	this.isActive = true;
+	this.isActive = isActive;
     }
 
     public void AddGameObject(GameObject go) {

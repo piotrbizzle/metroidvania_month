@@ -26,7 +26,6 @@ public class PickUpable : MonoBehaviour
 	    this.gameObject.AddComponent<BoxCollider2D>();
 	}
 
-
 	// add trigger for pickup
 	GameObject triggerGo = new GameObject(this.name + " PickUp Trigger"); 
 	triggerGo.AddComponent<BoxCollider2D>().isTrigger = true;

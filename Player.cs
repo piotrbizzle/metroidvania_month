@@ -92,12 +92,22 @@ public class Player : MonoBehaviour
 	    inventoryItemRb.AddTorque(tossTorqueModifier * rb.velocity.x);
 	}
 	this._dropKeyDown = drop;
-
+	
 	// decrement onGround
 	if (this._onGround > 0) {
 	    this._onGround--;
 	}
     }
+
+    /*
+        MINGUS
+
+         \_\
+        /oo|
+          ||____
+          \     >
+           || ||
+     */
 
     // Check if we're in a new zone and update if needed
     private void CheckCurrentZone() {
@@ -105,22 +115,22 @@ public class Player : MonoBehaviour
 	if (this.transform.position.x < this.currentZone.gameObject.transform.position.x - this.currentZone.width / 2.0f) {
 	    if (this.currentZone.leftZone != null) {
 		if (this.currentZone.rightZone != null) {
-		    this.currentZone.rightZone.DeactivateAll();
+		    this.currentZone.rightZone.SetActive(false);
 		}
 		this.currentZone = this.currentZone.leftZone;
 		if (this.currentZone.leftZone) {
-		    this.currentZone.leftZone.ActivateAll();
+		    this.currentZone.leftZone.SetActive(true);
 		}
 	    }
 	}
 	else if (this.transform.position.x > this.currentZone.gameObject.transform.position.x + this.currentZone.width / 2.0f) {
 	    if (this.currentZone.rightZone != null) {
 		if (this.currentZone.leftZone != null) {	  
-		    this.currentZone.leftZone.DeactivateAll();
+		    this.currentZone.leftZone.SetActive(false);
 		}
 		this.currentZone = this.currentZone.rightZone;
 		if (this.currentZone.rightZone) {
-		    this.currentZone.rightZone.ActivateAll();
+		    this.currentZone.rightZone.SetActive(true);
 		}
 	    }
 	}
@@ -133,6 +143,8 @@ public class Player : MonoBehaviour
 	PickUpable collidedPickUpable = collider.gameObject.transform.parent.gameObject.GetComponent<PickUpable>();
 
 	Platform collidedPlatform = collider.gameObject.transform.parent.gameObject.GetComponent<Platform>();
+
+	PickUpableContainer collidedContainer = collider.gameObject.GetComponent<PickUpableContainer>();
 	
 	// reset jumps if it's a floor
 	// TODO: maybe move this to onTriggerEnter
@@ -148,6 +160,25 @@ public class Player : MonoBehaviour
 		collidedPickUpable.RemoveFromScreen();
 		this._pickingUp = false;
 	    }
+	}
+    }
+
+    void OnTriggerEnter2D(Collider2D collider) {
+	PickUpableContainer collidedContainer = collider.gameObject.GetComponent<PickUpableContainer>();
+
+	// maybe open a container
+	if (collidedContainer != null) {
+	    collidedContainer.Open();
+	}
+    }
+
+    // Ontriggerexit2d called when this stops colliding with another BoxCollider2D w/ isTrigger=true
+    void OnTriggerExit2D(Collider2D collider) {
+	PickUpableContainer collidedContainer = collider.gameObject.GetComponent<PickUpableContainer>();
+
+	// maybe open a container
+	if (collidedContainer != null) {
+	    collidedContainer.Close();
 	}
     }
 }
