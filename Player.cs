@@ -11,20 +11,25 @@ public class Player : MonoBehaviour
     private float speedForce = 300.0f;
     private float maxSpeed = 3.0f;
     private float jumpSpeed = 6.0f;
-    private float tossForce = 3.0f;
+    private float tossForce = 1.0f;
     private float baseGroundBonus = 2.0f;
 
+
+    // controls
     private bool _facingRight = false;
 
     private bool _jumpKeyDown = false;
     private int _jumpsRemaining = 0;
     private int _maxJumps = 2;  // change this back to 1 if you hate fun
     private int _onGround = 0;
-
+    
     private bool _pickUpKeyDown = false;
     private bool _pickingUp = false;
 
     private bool _dropKeyDown = false;
+
+    // pointers
+    public PickUpableContainer openContainer = null;
 
     void Start()
     {
@@ -76,7 +81,7 @@ public class Player : MonoBehaviour
 	
 	// drop item
 	if (drop && !this._dropKeyDown && !this.gameObject.GetComponent<Inventory>().IsEmpty()) {
-	    PickUpable inventoryItem = this.gameObject.GetComponent<Inventory>().PopLast();
+	    PickUpable inventoryItem = this.gameObject.GetComponent<Inventory>().PopFirst();
 	    GameObject addedGo = inventoryItem.AddToScreen();
 	    addedGo.transform.position = this.gameObject.transform.position + new Vector3(0.0f, 1.0f, 0.0f);
 	    addedGo.transform.parent = this.currentZone.gameObject.transform;
@@ -169,6 +174,7 @@ public class Player : MonoBehaviour
 	// maybe open a container
 	if (collidedContainer != null) {
 	    collidedContainer.Open();
+	    this.openContainer = collidedContainer;
 	}
     }
 
@@ -179,6 +185,7 @@ public class Player : MonoBehaviour
 	// maybe open a container
 	if (collidedContainer != null) {
 	    collidedContainer.Close();
+    	    this.openContainer = null;
 	}
     }
 }

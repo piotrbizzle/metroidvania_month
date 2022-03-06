@@ -4,9 +4,7 @@ using UnityEngine;
 
 public class PickUpableContainer : MonoBehaviour
 {
-
-    [SerializeField]
-    private Inventory inventory;
+    public Inventory inventory;
 
     private bool isOpen = false;
     
@@ -16,11 +14,13 @@ public class PickUpableContainer : MonoBehaviour
 	BoxCollider2D collider = this.gameObject.AddComponent<BoxCollider2D>();
 	collider.isTrigger = true;
 
-	foreach (PickUpable item in this.inventory.inventoryItems) {
-	    if (item.gameObject != null) {
-		item.RemoveFromScreen();
-		this.inventory.AddItemIcon(item);
+	for (int idx = 0; idx < this.inventory.capacity; idx++) {
+	    PickUpable item = this.inventory.inventoryItems[idx];
+	    if (item == null || item.gameObject == null) {
+		continue;
 	    }
+	    item.RemoveFromScreen();
+	    this.inventory.AddItemIcon(item, idx);
 	}
 
 	// clean up and hide the items added in editor
