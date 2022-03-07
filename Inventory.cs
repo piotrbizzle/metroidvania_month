@@ -13,20 +13,23 @@ public class Inventory : MonoBehaviour
 
     public Image inventoryBackground;
     
-    public bool Add(PickUpable item) {
+    public int Add(PickUpable item) {
 	if (this.count >= this.capacity) {
-	    return false;
+	    return -1;
 	}
-	
+
+	this.count += 1;
+
 	for (int idx = 0; idx < this.capacity; idx++) {
 	    if (this.iconGameObjects[idx] == null) {
 		this.inventoryItems[idx] = item;
 		this.AddItemIcon(item, idx);
-		break;
+		return idx;
 	    }
 	}
-	this.count += 1;       
-	return true;
+	
+	// should be unreachable unless we mess up the count/
+	return -1;
     }
 
     public void AddItemIcon(PickUpable item, int idx) {
@@ -47,7 +50,7 @@ public class Inventory : MonoBehaviour
 	// add the item's icon to UI
 	// assumes the inventory has an odd number of slots
 	// TODO: clean up this line
-	itemRectangle.anchoredPosition = new Vector2(0f + 47.5f * (idx + 1 - (this.capacity + 1) / 2), 0f);
+	itemRectangle.anchoredPosition = new Vector2(57f * (idx + 1 - (this.capacity + 1) / 2), 0f);
 	itemRectangle.sizeDelta = new Vector2(40f, 40f); 
 
 	Image itemImage = itemIconGo.AddComponent<Image>();
@@ -77,18 +80,22 @@ public class Inventory : MonoBehaviour
 	return item;
     }
 
-    // TODO: remove this method when you make inventory shift items on drop
-    public PickUpable PopFirst() {
-	for (int idx = 0; idx < this.capacity; idx++) {
+    public int GetNextFullSlot(int startIdx) {
+	for (int i = 0; i < this.capacity; i++) {
+	    int idx = (startIdx + i) % this.capacity;
 	    if (this.iconGameObjects[idx] != null) {
-		return this.Pop(idx);
+		return idx;
 	    }
 	}
-	return null;
+	return -1;
     }
 
     public bool IsEmpty() {
 	return this.count == 0;
+    }
+
+    public bool IsSlotEmpty(int idx) {
+	return this.iconGameObjects[idx] == null;
     }
 
     public void SetActive(bool isActive) {

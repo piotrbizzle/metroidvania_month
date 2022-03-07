@@ -1,11 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
     // configurable
     public Zone currentZone;
+    public Image inventorySelector;
     
     // constants
     private float speedForce = 300.0f;
@@ -13,7 +15,6 @@ public class Player : MonoBehaviour
     private float jumpSpeed = 6.0f;
     private float tossForce = 1.0f;
     private float baseGroundBonus = 2.0f;
-
 
     // controls
     private bool _facingRight = false;
@@ -28,8 +29,9 @@ public class Player : MonoBehaviour
 
     private bool _dropKeyDown = false;
 
-    // pointers
+    // pointers and indices
     public PickUpableContainer openContainer = null;
+    public int selectedInventorySlot = 0;
 
     void Start()
     {
@@ -52,6 +54,12 @@ public class Player : MonoBehaviour
 	bool right = Input.GetKey("d");
 	bool pickup = Input.GetKey("e");	
 	bool drop = Input.GetKey("q");
+
+	bool one = Input.GetKey("1");
+	bool two = Input.GetKey("2");
+	bool three = Input.GetKey("3");
+	bool four = Input.GetKey("4");
+	bool five = Input.GetKey("5");
 	
 	// movement
 	Rigidbody2D rb = this.gameObject.GetComponent<Rigidbody2D>();
@@ -71,6 +79,19 @@ public class Player : MonoBehaviour
 	}
 	this._jumpKeyDown = up;
 
+	// change inventory selected slot
+	if (one) {
+	    this.UpdateInventorySelector(0);	
+	} else if (two) {
+	    this.UpdateInventorySelector(1);
+	} else if (three) {
+	    this.UpdateInventorySelector(2);
+	} else if (four) {
+	    this.UpdateInventorySelector(3);
+	} else if (five) {
+	    this.UpdateInventorySelector(4);
+	}
+
 	// pick up item
 	if (!pickup) {
 	    this._pickingUp = false;
@@ -80,8 +101,8 @@ public class Player : MonoBehaviour
 	this._pickUpKeyDown = pickup;
 	
 	// drop item
-	if (drop && !this._dropKeyDown && !this.gameObject.GetComponent<Inventory>().IsEmpty()) {
-	    PickUpable inventoryItem = this.gameObject.GetComponent<Inventory>().PopFirst();
+	if (drop && !this._dropKeyDown && !this.gameObject.GetComponent<Inventory>().IsSlotEmpty(this.selectedInventorySlot)) {
+	    PickUpable inventoryItem = this.gameObject.GetComponent<Inventory>().Pop(this.selectedInventorySlot);
 	    GameObject addedGo = inventoryItem.AddToScreen();
 	    addedGo.transform.position = this.gameObject.transform.position + new Vector3(0.0f, 1.0f, 0.0f);
 	    addedGo.transform.parent = this.currentZone.gameObject.transform;
@@ -95,6 +116,12 @@ public class Player : MonoBehaviour
 	    // add moar spin the faster you're moving
 	    float tossTorqueModifier = this._facingRight ? 5.0f : -5.0f;
 	    inventoryItemRb.AddTorque(tossTorqueModifier * rb.velocity.x);
+
+	    // update selector to the next non-empty slot if there is one
+	    int nextFullSlot = this.GetComponent<Inventory>().GetNextFullSlot(this.selectedInventorySlot);
+	    if (nextFullSlot != -1) {
+		this.UpdateInventorySelector(nextFullSlot);
+	    }
 	}
 	this._dropKeyDown = drop;
 	
@@ -114,6 +141,37 @@ public class Player : MonoBehaviour
            || ||
      */
 
+    // update selected slot and move UI component
+    private void UpdateInventorySelector(int idx) {
+	// do nothing if the slot is already selected
+	if (idx == this.selectedInventorySlot) {
+	    return;
+	}
+
+	// remove label of previously selected object
+	Inventory inventory = this.GetComponent<Inventory>();
+	GameObject[] iconGameObjects = inventory.iconGameObjects;
+	if (!inventory.IsSlotEmpty(this.selectedInventorySlot)) {	    
+	    iconGameObjects[this.selectedInventorySlot].GetComponent<InventoryIcon>().selected = false;
+	    iconGameObjects[this.selectedInventorySlot].GetComponent<InventoryIcon>().RemoveLabel();
+	}
+
+	// display label of selected object if not already shown
+	if (!inventory.IsSlotEmpty(idx)) {
+	    if (!iconGameObjects[idx].GetComponent<InventoryIcon>().showingLabel) {
+		iconGameObjects[idx].GetComponent<InventoryIcon>().AddLabel();
+	    }
+	    iconGameObjects[idx].GetComponent<InventoryIcon>().selected = true;
+	}	
+
+	// update selected slot
+	this.selectedInventorySlot = idx;
+
+	// update position of selector ui element
+	RectTransform selectorRectangle = this.inventorySelector.GetComponent<RectTransform>();
+	selectorRectangle.anchoredPosition = new Vector2(57f * (idx + 1 - (this.GetComponent<Inventory>().capacity + 1) / 2), selectorRectangle.anchoredPosition.y);      	
+    }
+    
     // Check if we're in a new zone and update if needed
     private void CheckCurrentZone() {
 	// TODO: add up and down zones also
@@ -160,10 +218,17 @@ public class Player : MonoBehaviour
 
 	// maybe pick up if it's an item
 	if (this._pickingUp && collidedPickUpable != null) {
-	    bool added = this.gameObject.GetComponent<Inventory>().Add(collidedPickUpable);
-	    if (added) {
+	    int addedIdx = this.gameObject.GetComponent<Inventory>().Add(collidedPickUpable);
+	    if (addedIdx != -1) {
 		collidedPickUpable.RemoveFromScreen();
 		this._pickingUp = false;
+
+		// add a label if the item is added to selected slot
+		if (this.selectedInventorySlot == addedIdx) {
+		    InventoryIcon inventoryIcon = this.GetComponent<Inventory>().iconGameObjects[addedIdx].GetComponent<InventoryIcon>();
+		    inventoryIcon.AddLabel();
+    		    inventoryIcon.selected = true;;
+		}
 	    }
 	}
     }
