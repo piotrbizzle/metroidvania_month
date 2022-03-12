@@ -10,10 +10,10 @@ public class Player : MonoBehaviour
     public Image inventorySelector;
     
     // constants
-    private float speedForce = 300.0f;
-    private float maxSpeed = 3.0f;
+    private float speedForce = 500.0f;
+    private float maxSpeed = 4.0f;
     private float jumpSpeed = 6.0f;
-    private float tossForce = 1.0f;
+    private float tossForce = 3.0f;
     private float baseGroundBonus = 2.0f;
 
     // controls
@@ -49,7 +49,6 @@ public class Player : MonoBehaviour
     {
 	// read inputs
         bool up = Input.GetKey("w");
-	bool down = Input.GetKey("s");
 	bool left = Input.GetKey("a");
 	bool right = Input.GetKey("d");
 	bool pickup = Input.GetKey("e");	
@@ -104,7 +103,7 @@ public class Player : MonoBehaviour
 	if (drop && !this._dropKeyDown && !this.gameObject.GetComponent<Inventory>().IsSlotEmpty(this.selectedInventorySlot)) {
 	    PickUpable inventoryItem = this.gameObject.GetComponent<Inventory>().Pop(this.selectedInventorySlot);
 	    GameObject addedGo = inventoryItem.AddToScreen();
-	    addedGo.transform.position = this.gameObject.transform.position + new Vector3(0.0f, 1.0f, 0.0f);
+	    addedGo.transform.position = this.gameObject.transform.position + new Vector3(0.5f * (this._facingRight ? 1 : -1), 1.0f, 0.0f);
 	    addedGo.transform.parent = this.currentZone.gameObject.transform;
 
 	    // give it a bit of a toss
@@ -201,22 +200,18 @@ public class Player : MonoBehaviour
 
     // Ontriggerstay2d called when this collides with another BoxCollider2D w/ isTrigger=true
     void OnTriggerStay2D(Collider2D collider)
-    {
-	// check if the thing you collider with is attached to a zone item
-	PickUpable collidedPickUpable = collider.gameObject.transform.parent.gameObject.GetComponent<PickUpable>();
+    {	
+	// reset jumps if colldier is a floor
+	JumpTrigger collidedJumpTrigger = collider.gameObject.GetComponent<JumpTrigger>();
 
-	Platform collidedPlatform = collider.gameObject.transform.parent.gameObject.GetComponent<Platform>();
-
-	PickUpableContainer collidedContainer = collider.gameObject.GetComponent<PickUpableContainer>();
-	
-	// reset jumps if it's a floor
-	// TODO: maybe move this to onTriggerEnter
-	if (collidedPlatform != null && this.gameObject.GetComponent<Rigidbody2D>().velocity.y < 0.1) {
+	if (collidedJumpTrigger != null && this.gameObject.GetComponent<Rigidbody2D>().velocity.y < 0.1) {
 	    this._jumpsRemaining = this._maxJumps;
 	    this._onGround = 10;
 	}
 
-	// maybe pick up if it's an item
+	// maybe pick up if collider is an item
+	PickUpable collidedPickUpable = collider.gameObject.transform.parent.gameObject.GetComponent<PickUpable>();
+
 	if (this._pickingUp && collidedPickUpable != null) {
 	    int addedIdx = this.gameObject.GetComponent<Inventory>().Add(collidedPickUpable);
 	    if (addedIdx != -1) {
@@ -234,23 +229,34 @@ public class Player : MonoBehaviour
     }
 
     void OnTriggerEnter2D(Collider2D collider) {
+	// open if collider is a container
 	PickUpableContainer collidedContainer = collider.gameObject.GetComponent<PickUpableContainer>();
-
-	// maybe open a container
 	if (collidedContainer != null) {
 	    collidedContainer.Open();
 	    this.openContainer = collidedContainer;
 	}
+
+	// show text if collider has dialogue
+	Dialogue collidedDialogue = collider.gameObject.GetComponent<Dialogue>();
+	if (collidedDialogue != null) {
+	    collidedDialogue.AddText();
+	}      
     }
 
     // Ontriggerexit2d called when this stops colliding with another BoxCollider2D w/ isTrigger=true
     void OnTriggerExit2D(Collider2D collider) {
+	// close if collider is a container
 	PickUpableContainer collidedContainer = collider.gameObject.GetComponent<PickUpableContainer>();
 
-	// maybe open a container
 	if (collidedContainer != null) {
 	    collidedContainer.Close();
     	    this.openContainer = null;
 	}
+
+	// remove text if collider has dialogue
+	Dialogue collidedDialogue = collider.gameObject.GetComponent<Dialogue>();
+	if (collidedDialogue != null) {
+	    collidedDialogue.RemoveText();
+	}      
     }
 }

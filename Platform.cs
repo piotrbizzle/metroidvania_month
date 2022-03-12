@@ -21,12 +21,23 @@ public class Platform : MonoBehaviour
 	this.gameObject.GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.FreezeAll;	    
 
 	// add trigger to reset jumps
-	GameObject triggerGo = new GameObject(this.name + " Floor Trigger"); 
-	triggerGo.AddComponent<BoxCollider2D>();
-	triggerGo.GetComponent<BoxCollider2D>().isTrigger = true;
-	triggerGo.transform.parent = this.gameObject.transform;
-	triggerGo.transform.localScale = new Vector3(0.98f, 1.0f, 1.0f);
-	triggerGo.transform.localPosition = new Vector3(0.0f, 0.2f, 0.0f);      
+	GameObject jumpTriggerGo = new GameObject(this.name + " Floor Trigger");
+	jumpTriggerGo.AddComponent<JumpTrigger>();
+	jumpTriggerGo.AddComponent<BoxCollider2D>();
+	jumpTriggerGo.GetComponent<BoxCollider2D>().isTrigger = true;
+	jumpTriggerGo.transform.parent = this.gameObject.transform;
+	jumpTriggerGo.transform.localScale = new Vector3(0.98f, 1.0f, 1.0f);
+	jumpTriggerGo.transform.localPosition = new Vector3(0.0f, 0.2f, 0.0f);
+	jumpTriggerGo.layer = 7;
+
+	// add trigger to detect potions. Keep on default layer.
+	GameObject potionTriggerGo = new GameObject(this.name + " Potion Trigger");
+	potionTriggerGo.AddComponent<PotionTrigger>();
+	potionTriggerGo.AddComponent<BoxCollider2D>();
+	potionTriggerGo.GetComponent<BoxCollider2D>().isTrigger = true;
+	potionTriggerGo.transform.parent = this.gameObject.transform;
+	potionTriggerGo.transform.localScale = new Vector3(1.02f, 1.02f, 1.02f);
+	potionTriggerGo.transform.localPosition = new Vector3(0.0f, 0.0f, 0.0f);
     }
 
     public void ChangeMaterial(Materials.Material newMaterial) {

@@ -13,6 +13,7 @@ public class PickUpableContainer : MonoBehaviour
     {
 	BoxCollider2D collider = this.gameObject.AddComponent<BoxCollider2D>();
 	collider.isTrigger = true;
+	this.gameObject.layer = 7;
 
 	for (int idx = 0; idx < this.inventory.capacity; idx++) {
 	    PickUpable item = this.inventory.inventoryItems[idx];

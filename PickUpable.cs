@@ -101,16 +101,15 @@ public class PickUpable : MonoBehaviour
 	}
 	
 	// try to get platform if there is one
-	Platform platform = collider.gameObject.GetComponent<Platform>();
-	if (platform == null && collider.gameObject.transform.parent != null) {
-	    platform = collider.gameObject.transform.parent.GetComponent<Platform>();
-	}	
-
-	// non-platforms don't break items
-	if (platform == null) {
-	    return;
-	}
+	PotionTrigger potionTrigger = collider.gameObject.GetComponent<PotionTrigger>();
 	
+	// non-potionTriggers don't break items
+	if (potionTrigger == null) {
+	    return;
+	}	
+	Platform platform = collider.gameObject.transform.parent.GetComponent<Platform>();
+
+		
 	// TODO: visually indicate breaking
 	
 	// remove from screen and end early if there is no material transition
@@ -124,7 +123,7 @@ public class PickUpable : MonoBehaviour
     	    this.RemoveFromScreen();
 	    return;
 	}
-	
+
 	// otherwise, it's a match! change platform material
 	platform.ChangeMaterial(this.outMaterial);
 	this.RemoveFromScreen();
