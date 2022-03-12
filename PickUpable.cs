@@ -4,6 +4,13 @@ using UnityEngine;
 
 public class PickUpable : MonoBehaviour
 {
+    // configuration
+    // TODO: maybe subclass instead
+    public bool isBreakable;
+    public Materials.Material inMaterial;
+    public Materials.Material outMaterial;
+    public bool isUnlimited;
+    
     // inferred fields
     public Sprite sprite;
     public string itemName;
@@ -71,15 +78,55 @@ public class PickUpable : MonoBehaviour
 	go.AddComponent<BoxCollider2D>();
 	go.AddComponent<PickUpable>();
 
-	// copy all the properties over to the new PickUpable
+	// copy all the properties over to the new PickUpable. This is kinda dumb
 	PickUpable newPickUpable = go.GetComponent<PickUpable>();
 	newPickUpable.placedProgramatically = true;
 	newPickUpable.sprite = this.sprite;
 	newPickUpable.itemName = this.itemName;
-
+	newPickUpable.isBreakable = this.isBreakable;
+	newPickUpable.isUnlimited = this.isUnlimited;
+	newPickUpable.inMaterial = this.inMaterial;
+	newPickUpable.outMaterial = this.outMaterial;
+	
 	// position the gameObject
 	go.transform.Translate(this.position);
 
 	return go;
+    }
+
+    void OnTriggerEnter2D(Collider2D collider) {
+	// non-breakable items don't break
+	if (!this.isBreakable) {
+	    return;
+	}
+	
+	// try to get platform if there is one
+	Platform platform = collider.gameObject.GetComponent<Platform>();
+	if (platform == null && collider.gameObject.transform.parent != null) {
+	    platform = collider.gameObject.transform.parent.GetComponent<Platform>();
+	}	
+
+	// non-platforms don't break items
+	if (platform == null) {
+	    return;
+	}
+	
+	// TODO: visually indicate breaking
+	
+	// remove from screen and end early if there is no material transition
+	if (this.inMaterial == Materials.Material.None && this.outMaterial == Materials.Material.None) {
+	    this.RemoveFromScreen();
+	    return;
+	}
+
+	// remove from screen and end early if platform material is not a match
+	if (platform.material != this.inMaterial) {
+    	    this.RemoveFromScreen();
+	    return;
+	}
+	
+	// otherwise, it's a match! change platform material
+	platform.ChangeMaterial(this.outMaterial);
+	this.RemoveFromScreen();
     }
 }
