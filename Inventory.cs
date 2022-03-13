@@ -32,7 +32,7 @@ public class Inventory : MonoBehaviour
 	return -1;
     }
 
-    public void AddItemIcon(PickUpable item, int idx) {
+    public void AddItemIcon(PickUpable item, int idx, bool preserveIsUnlimited=false) {
 	// add this item to a ui is applicable
 	if (this.inventoryBackground == null) {
 	    return;
@@ -61,7 +61,10 @@ public class Inventory : MonoBehaviour
 	icon.parentInventory = this;
 	icon.parentPickUpable = item;
 	icon.slotIdx = idx;
-
+	if (preserveIsUnlimited) {
+	    icon.isUnlimited = item.isUnlimited;
+	}
+		
 	this.iconGameObjects[idx] = itemIconGo;
     }
 

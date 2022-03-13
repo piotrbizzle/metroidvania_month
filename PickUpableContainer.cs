@@ -21,7 +21,7 @@ public class PickUpableContainer : MonoBehaviour
 		continue;
 	    }
 	    item.RemoveFromScreen();
-	    this.inventory.AddItemIcon(item, idx);
+	    this.inventory.AddItemIcon(item, idx, true); // preserve isUnlimited
 	}
 
 	// clean up and hide the items added in editor

@@ -9,24 +9,25 @@ public class Player : MonoBehaviour
     public Zone currentZone;
     public Image inventorySelector;
     public int maxJumps = 1; 
+    public Sprite[] sprites;
     
     // constants
     private float speedForce = 500.0f;
-    private float maxSpeed = 4.0f;
+    private float maxSpeed = 3.0f;
     private float jumpSpeed = 8.0f;
     private float tossForce = 3.0f;
     private float baseGroundBonus = 2.0f;
 
     // controls
-    private bool _facingRight = false;
-    private bool _jumpKeyDown = false;
-    private int _jumpsRemaining = 0;
-    private int _onGround = 0;
+    private bool facingRight = false;
+    private bool jumpKeyDown = false;
+    private int jumpsRemaining = 0;
+    private int onGround = 0;
     
-    private bool _pickUpKeyDown = false;
-    private bool _pickingUp = false;
+    private bool pickUpKeyDown = false;
+    private bool pickingUp = false;
 
-    private bool _dropKeyDown = false;
+    private bool dropKeyDown = false;
 
     // pointers and indices
     public PickUpableContainer openContainer = null;
@@ -61,21 +62,23 @@ public class Player : MonoBehaviour
 	
 	// movement
 	Rigidbody2D rb = this.gameObject.GetComponent<Rigidbody2D>();
-	float groundBonus = this._onGround > 0 ? this.baseGroundBonus : 1.0f;
+	float groundBonus = this.onGround > 0 ? this.baseGroundBonus : 1.0f;
 	if (left && !right && rb.velocity.x > -1 * maxSpeed * groundBonus) {
 	    rb.AddForce(new Vector2(-1 * speedForce * groundBonus * Time.deltaTime, 0));
-	    this._facingRight = false;
+	    this.facingRight = false;
+	    this.GetComponent<SpriteRenderer>().sprite = this.sprites[0];
 	}
 	if (right && !left && rb.velocity.x < maxSpeed * groundBonus) {
 	    rb.AddForce(new Vector2(speedForce * Time.deltaTime * groundBonus, 0));
-	    this._facingRight = true;
+	    this.facingRight = true;
+	    this.GetComponent<SpriteRenderer>().sprite = this.sprites[2];
 	}
 	
-	if (up && !this._jumpKeyDown && this._jumpsRemaining > 0) {
-	    this._jumpsRemaining--;
+	if (up && !this.jumpKeyDown && this.jumpsRemaining > 0) {
+	    this.jumpsRemaining--;
 	    gameObject.GetComponent<Rigidbody2D>().velocity = new Vector2(gameObject.GetComponent<Rigidbody2D>().velocity.x, jumpSpeed);
 	}
-	this._jumpKeyDown = up;
+	this.jumpKeyDown = up;
 
 	// change inventory selected slot
 	if (one) {
@@ -92,29 +95,29 @@ public class Player : MonoBehaviour
 
 	// pick up item
 	if (!pickup) {
-	    this._pickingUp = false;
-	} else if (pickup && !this._pickUpKeyDown) {
-	    this._pickingUp = true;
+	    this.pickingUp = false;
+	} else if (pickup && !this.pickUpKeyDown) {
+	    this.pickingUp = true;
 	}
-	this._pickUpKeyDown = pickup;
+	this.pickUpKeyDown = pickup;
 	
 	// drop item
-	if (drop && !this._dropKeyDown && !this.gameObject.GetComponent<Inventory>().IsSlotEmpty(this.selectedInventorySlot)) {
+	if (drop && !this.dropKeyDown && !this.gameObject.GetComponent<Inventory>().IsSlotEmpty(this.selectedInventorySlot)) {
 	    PickUpable inventoryItem = this.gameObject.GetComponent<Inventory>().Pop(this.selectedInventorySlot);
 	    inventoryItem.OnDrop(this);
 
 	    GameObject addedGo = inventoryItem.AddToScreen();
-	    addedGo.transform.position = this.gameObject.transform.position + new Vector3(0.5f * (this._facingRight ? 1 : -1), 1.0f, 0.0f);
+	    addedGo.transform.position = this.gameObject.transform.position + new Vector3(0.5f * (this.facingRight ? 1 : -1), 1.0f, 0.0f);
 	    addedGo.transform.parent = this.currentZone.gameObject.transform;
 
 	    // give it a bit of a toss
 	    Rigidbody2D inventoryItemRb = addedGo.GetComponent<Rigidbody2D>();
 	    inventoryItemRb.velocity = new Vector2(rb.velocity.x, rb.velocity.y);
-	    float tossForceX = this._facingRight ? 2 * tossForce : -2 * tossForce;;
+	    float tossForceX = this.facingRight ? 2 * tossForce : -2 * tossForce;;
 	    inventoryItemRb.AddForce(new Vector2(tossForceX, tossForce), ForceMode2D.Impulse);
 
 	    // add moar spin the faster you're moving
-	    float tossTorqueModifier = this._facingRight ? 5.0f : -5.0f;
+	    float tossTorqueModifier = this.facingRight ? 5.0f : -5.0f;
 	    inventoryItemRb.AddTorque(tossTorqueModifier * rb.velocity.x);
 
 	    // update selector to the next non-empty slot if there is one
@@ -123,11 +126,11 @@ public class Player : MonoBehaviour
 		this.UpdateInventorySelector(nextFullSlot);
 	    }
 	}
-	this._dropKeyDown = drop;
+	this.dropKeyDown = drop;
 	
 	// decrement onGround
-	if (this._onGround > 0) {
-	    this._onGround--;
+	if (this.onGround > 0) {
+	    this.onGround--;
 	}
     }
 
@@ -142,7 +145,7 @@ public class Player : MonoBehaviour
      */
 
     // update selected slot and move UI component
-    private void UpdateInventorySelector(int idx) {
+    public void UpdateInventorySelector(int idx) {
 	// do nothing if the slot is already selected
 	if (idx == this.selectedInventorySlot) {
 	    return;
@@ -206,21 +209,21 @@ public class Player : MonoBehaviour
 	JumpTrigger collidedJumpTrigger = collider.gameObject.GetComponent<JumpTrigger>();
 
 	if (collidedJumpTrigger != null && this.gameObject.GetComponent<Rigidbody2D>().velocity.y < 0.1) {
-	    this._jumpsRemaining = this.maxJumps;
-	    this._onGround = 10;
+	    this.jumpsRemaining = this.maxJumps;
+	    this.onGround = 10;
 	}
 
 	// maybe pick up if collider is an item
 	PickUpable collidedPickUpable = collider.gameObject.transform.parent.gameObject.GetComponent<PickUpable>();
 
-	if (this._pickingUp && collidedPickUpable != null) {
+	if (this.pickingUp && collidedPickUpable != null) {
 	    int addedIdx = this.gameObject.GetComponent<Inventory>().Add(collidedPickUpable);
 
 	    // successful pickup
 	    if (addedIdx != -1) {
 		collidedPickUpable.OnPickup(this);
 		collidedPickUpable.RemoveFromScreen();
-		this._pickingUp = false;
+		this.pickingUp = false;
 
 		// add a label if the item is added to selected slot
 		if (this.selectedInventorySlot == addedIdx) {

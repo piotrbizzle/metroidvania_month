@@ -112,7 +112,10 @@ public class PickUpable : MonoBehaviour
 	Platform platform = collider.gameObject.transform.parent.GetComponent<Platform>();
 
 		
-	// TODO: visually indicate breaking
+	// visually indicate impact
+	SpriteRenderer sr = platform.gameObject.GetComponent<SpriteRenderer>();
+	sr.color = new Color(1.0f, 1.0f, 1.0f);
+	platform.isFlashing = platform.maxFlash;
 	
 	// remove from screen and end early if there is no material transition
 	if (this.inMaterial == Materials.Material.None && this.outMaterial == Materials.Material.None) {

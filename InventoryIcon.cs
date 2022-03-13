@@ -14,6 +14,8 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 
     public bool selected;
     public bool showingLabel;
+
+    public bool isUnlimited;
     
     public void OnPointerClick(PointerEventData pointerEventData) {
 	// respond to left click only
@@ -50,14 +52,13 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 	int addedIdx = addingInventory.Add(this.parentPickUpable);
 
 	// if added, remove from container if not unlimited
-	if (addedIdx != -1 && !this.parentPickUpable.isUnlimited) {
-	    // add label if added to selected slot in player inventory
-	    if (addingToPlayer && player.selectedInventorySlot == addedIdx) {
-		// TODO: maybe make this shorter with a method on inventory
-		addingInventory.iconGameObjects[addedIdx].GetComponent<InventoryIcon>().AddLabel();
-		addingInventory.iconGameObjects[addedIdx].GetComponent<InventoryIcon>().selected = true;
+	if (addedIdx != -1) {
+	    // switch selected item
+	    player.UpdateInventorySelector(addedIdx);
+
+	    if (!this.isUnlimited) {
+		this.parentInventory.Pop(this.slotIdx);
 	    }
-	    this.parentInventory.Pop(this.slotIdx);
 	}
     }
 

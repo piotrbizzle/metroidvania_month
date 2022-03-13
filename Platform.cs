@@ -4,11 +4,16 @@ using UnityEngine;
 
 public class Platform : MonoBehaviour
 {
+    public int blocksX;
+    public int blocksY;
     public Materials.Material material;
     public float floatingY;
     public float sinkingY;
     public bool isMoveable;
+    public int isFlashing = 0;
+    public int maxFlash = 30;
     private bool isMoving;
+
     
     // Start is called before the first frame update
     void Start()
@@ -30,8 +35,8 @@ public class Platform : MonoBehaviour
 	jumpTriggerGo.AddComponent<BoxCollider2D>();
 	jumpTriggerGo.GetComponent<BoxCollider2D>().isTrigger = true;
 	jumpTriggerGo.transform.parent = this.gameObject.transform;
-	jumpTriggerGo.transform.localScale = new Vector3(0.98f, 1.0f, 1.0f);
-	jumpTriggerGo.transform.localPosition = new Vector3(0.0f, 0.2f, 0.0f);
+	jumpTriggerGo.transform.localScale = new Vector3(1.25f * this.blocksX, 1.25f * this.blocksY, 1.0f);
+	jumpTriggerGo.transform.localPosition = new Vector3(0.0f, 0.25f, 0.0f);
 	jumpTriggerGo.layer = 7;
 
 	// add trigger to detect potions. Keep on default layer.
@@ -40,7 +45,7 @@ public class Platform : MonoBehaviour
 	potionTriggerGo.AddComponent<BoxCollider2D>();
 	potionTriggerGo.GetComponent<BoxCollider2D>().isTrigger = true;
 	potionTriggerGo.transform.parent = this.gameObject.transform;
-	potionTriggerGo.transform.localScale = new Vector3(1.02f, 1.02f, 1.02f);
+	potionTriggerGo.transform.localScale = new Vector3(1.25f * this.blocksX + 0.1f, 1.25f * this.blocksY + 0.1f, 1.0f);
 	potionTriggerGo.transform.localPosition = new Vector3(0.0f, 0.0f, 0.0f);
 
 	// set initial location as floating or sinking height based on material
@@ -52,6 +57,22 @@ public class Platform : MonoBehaviour
     }
 
     void Update() {
+	// maybe stop flashing white after impact
+	if (this.isFlashing > 0) {
+	    this.isFlashing -= 1;
+	}
+	if (this.isFlashing == 1) {
+	    // changing to air deletes the platform, otherwise change color
+	    if (this.material == Materials.Material.Air) {
+		GameObject.Destroy(this.gameObject);
+	    } else {
+		SpriteRenderer sr = this.GetComponent<SpriteRenderer>();
+		sr.color = Materials.MaterialToColor[this.material];
+	    }	    
+
+	}
+	    
+	// move floating or sinking platform
 	if (!this.isMoveable || !this.isMoving) {
 	    return;
 	}
@@ -70,19 +91,11 @@ public class Platform : MonoBehaviour
     }
 
     public void ChangeMaterial(Materials.Material newMaterial) {
-	// changing to air deletes the platform
-	if (newMaterial == Materials.Material.Air) {
-	    GameObject.Destroy(this.gameObject);
-	}
-
 	// otherwise, update material and color
 	if (Materials.DoesFloat(this.material) != Materials.DoesFloat(newMaterial)) {
 	    this.isMoving = true;
 	}
 	
-	this.material = newMaterial;	
-	
-	SpriteRenderer sr = this.GetComponent<SpriteRenderer>();
-	sr.color = Materials.MaterialToColor[newMaterial];
+	this.material = newMaterial;		
     }
 }
