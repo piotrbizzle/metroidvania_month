@@ -23,6 +23,7 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 
 	// determine which containers to add to
 	GameObject playerGo = GameObject.Find("Player");
+	Player player = playerGo.GetComponent<Player>();
 	Inventory addingInventory = null;
 	bool addingToPlayer = false;
 	if (this.parentInventory.gameObject.GetComponent<Player>() != null) {
@@ -30,21 +31,28 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 	    PickUpableContainer openContainer = playerGo.GetComponent<Player>().openContainer;
 	    if (openContainer == null) {
 		return;
-	    }       	
-	    addingInventory = openContainer.inventory;	   
+	    }       		    
+	    addingInventory = openContainer.inventory;
 	} else {
 	    // otherwise, add to player's inventory
 	    addingInventory = playerGo.GetComponent<Inventory>();
 	    addingToPlayer = true;
 	}
 	
+	// item pickup / drop effects
+	if (addingToPlayer) {
+	    this.parentPickUpable.OnPickup(player);
+	} else {
+	    this.parentPickUpable.OnDrop(player);
+	}
+
 	// try to add it
 	int addedIdx = addingInventory.Add(this.parentPickUpable);
 
 	// if added, remove from container if not unlimited
 	if (addedIdx != -1 && !this.parentPickUpable.isUnlimited) {
 	    // add label if added to selected slot in player inventory
-	    if (addingToPlayer && playerGo.GetComponent<Player>().selectedInventorySlot == addedIdx) {
+	    if (addingToPlayer && player.selectedInventorySlot == addedIdx) {
 		// TODO: maybe make this shorter with a method on inventory
 		addingInventory.iconGameObjects[addedIdx].GetComponent<InventoryIcon>().AddLabel();
 		addingInventory.iconGameObjects[addedIdx].GetComponent<InventoryIcon>().selected = true;

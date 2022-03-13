@@ -8,20 +8,19 @@ public class Player : MonoBehaviour
     // configurable
     public Zone currentZone;
     public Image inventorySelector;
+    public int maxJumps = 1; 
     
     // constants
     private float speedForce = 500.0f;
     private float maxSpeed = 4.0f;
-    private float jumpSpeed = 6.0f;
+    private float jumpSpeed = 8.0f;
     private float tossForce = 3.0f;
     private float baseGroundBonus = 2.0f;
 
     // controls
     private bool _facingRight = false;
-
     private bool _jumpKeyDown = false;
     private int _jumpsRemaining = 0;
-    private int _maxJumps = 2;  // change this back to 1 if you hate fun
     private int _onGround = 0;
     
     private bool _pickUpKeyDown = false;
@@ -102,6 +101,8 @@ public class Player : MonoBehaviour
 	// drop item
 	if (drop && !this._dropKeyDown && !this.gameObject.GetComponent<Inventory>().IsSlotEmpty(this.selectedInventorySlot)) {
 	    PickUpable inventoryItem = this.gameObject.GetComponent<Inventory>().Pop(this.selectedInventorySlot);
+	    inventoryItem.OnDrop(this);
+
 	    GameObject addedGo = inventoryItem.AddToScreen();
 	    addedGo.transform.position = this.gameObject.transform.position + new Vector3(0.5f * (this._facingRight ? 1 : -1), 1.0f, 0.0f);
 	    addedGo.transform.parent = this.currentZone.gameObject.transform;
@@ -205,7 +206,7 @@ public class Player : MonoBehaviour
 	JumpTrigger collidedJumpTrigger = collider.gameObject.GetComponent<JumpTrigger>();
 
 	if (collidedJumpTrigger != null && this.gameObject.GetComponent<Rigidbody2D>().velocity.y < 0.1) {
-	    this._jumpsRemaining = this._maxJumps;
+	    this._jumpsRemaining = this.maxJumps;
 	    this._onGround = 10;
 	}
 
@@ -214,7 +215,10 @@ public class Player : MonoBehaviour
 
 	if (this._pickingUp && collidedPickUpable != null) {
 	    int addedIdx = this.gameObject.GetComponent<Inventory>().Add(collidedPickUpable);
+
+	    // successful pickup
 	    if (addedIdx != -1) {
+		collidedPickUpable.OnPickup(this);
 		collidedPickUpable.RemoveFromScreen();
 		this._pickingUp = false;
 
@@ -236,11 +240,19 @@ public class Player : MonoBehaviour
 	    this.openContainer = collidedContainer;
 	}
 
-	// show text if collider has dialogue
-	Dialogue collidedDialogue = collider.gameObject.GetComponent<Dialogue>();
-	if (collidedDialogue != null) {
-	    collidedDialogue.AddText();
-	}      
+	if (collider.gameObject.transform.parent != null) {
+	    // show text if collider has dialogue
+	    Dialogue collidedDialogue = collider.gameObject.transform.parent.GetComponent<Dialogue>();
+	    if (collidedDialogue != null) {
+		collidedDialogue.AddText();
+	    }
+
+	    // teleport if collider is a teleporter
+    	    Teleporter collidedTeleporter = collider.gameObject.transform.parent.GetComponent<Teleporter>();
+    	    if (collidedTeleporter != null) {
+		this.transform.position = new Vector3(collidedTeleporter.destinationX, collidedTeleporter.destinationY, 0.0f); 
+	    }
+	}
     }
 
     // Ontriggerexit2d called when this stops colliding with another BoxCollider2D w/ isTrigger=true
@@ -254,9 +266,11 @@ public class Player : MonoBehaviour
 	}
 
 	// remove text if collider has dialogue
-	Dialogue collidedDialogue = collider.gameObject.GetComponent<Dialogue>();
-	if (collidedDialogue != null) {
-	    collidedDialogue.RemoveText();
-	}      
+	if (collider.gameObject.transform.parent != null) {
+	    Dialogue collidedDialogue = collider.gameObject.transform.parent.GetComponent<Dialogue>();
+	    if (collidedDialogue != null) {
+		collidedDialogue.RemoveText();
+	    }
+	}	    
     }
 }

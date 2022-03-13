@@ -10,12 +10,13 @@ public class PickUpable : MonoBehaviour
     public Materials.Material inMaterial;
     public Materials.Material outMaterial;
     public bool isUnlimited;
+    public bool addsJump;
     
     // inferred fields
     public Sprite sprite;
     public string itemName;
     private Vector3 position;
-    private bool placedProgramatically = false;
+    private bool placedProgramatically = false;    
 
     // Start is called before the first frame update
     void Start()
@@ -87,6 +88,7 @@ public class PickUpable : MonoBehaviour
 	newPickUpable.isUnlimited = this.isUnlimited;
 	newPickUpable.inMaterial = this.inMaterial;
 	newPickUpable.outMaterial = this.outMaterial;
+	newPickUpable.addsJump = this.addsJump;
 	
 	// position the gameObject
 	go.transform.Translate(this.position);
@@ -127,5 +129,20 @@ public class PickUpable : MonoBehaviour
 	// otherwise, it's a match! change platform material
 	platform.ChangeMaterial(this.outMaterial);
 	this.RemoveFromScreen();
+    }
+
+    public void OnPickup(Player player) {
+	// maybe add jumps
+	if (this.addsJump) {
+	    player.maxJumps += 1;
+	}
+    }
+
+    public void OnDrop(Player player) {
+	// maybe remove jumps
+	if (this.addsJump) {
+	    player.maxJumps -= 1;
+	}
+
     }
 }

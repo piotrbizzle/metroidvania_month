@@ -28,7 +28,7 @@ public class Inventory : MonoBehaviour
 	    }
 	}
 	
-	// should be unreachable unless we mess up the count/
+	// should be unreachable unless we mess up the count
 	return -1;
     }
 

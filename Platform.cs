@@ -5,6 +5,10 @@ using UnityEngine;
 public class Platform : MonoBehaviour
 {
     public Materials.Material material;
+    public float floatingY;
+    public float sinkingY;
+    public bool isMoveable;
+    private bool isMoving;
     
     // Start is called before the first frame update
     void Start()
@@ -38,6 +42,31 @@ public class Platform : MonoBehaviour
 	potionTriggerGo.transform.parent = this.gameObject.transform;
 	potionTriggerGo.transform.localScale = new Vector3(1.02f, 1.02f, 1.02f);
 	potionTriggerGo.transform.localPosition = new Vector3(0.0f, 0.0f, 0.0f);
+
+	// set initial location as floating or sinking height based on material
+	if (Materials.DoesFloat(this.material)) {
+	    this.floatingY = this.transform.position.y;
+	} else {
+	    this.sinkingY = this.transform.position.y;
+	}
+    }
+
+    void Update() {
+	if (!this.isMoveable || !this.isMoving) {
+	    return;
+	}
+
+	if (Materials.DoesFloat(this.material)) {
+	    this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y + 0.02f, 0.0f);
+	    if (this.transform.position.y > this.floatingY) {
+		this.isMoving = false;
+	    }
+	} else {
+	    this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y - 0.02f, 0.0f);
+	    if (this.transform.position.y < this.sinkingY) {
+		this.isMoving = false;
+	    }
+	}		
     }
 
     public void ChangeMaterial(Materials.Material newMaterial) {
@@ -47,7 +76,11 @@ public class Platform : MonoBehaviour
 	}
 
 	// otherwise, update material and color
-	this.material = newMaterial;
+	if (Materials.DoesFloat(this.material) != Materials.DoesFloat(newMaterial)) {
+	    this.isMoving = true;
+	}
+	
+	this.material = newMaterial;	
 	
 	SpriteRenderer sr = this.GetComponent<SpriteRenderer>();
 	sr.color = Materials.MaterialToColor[newMaterial];
