@@ -10,8 +10,8 @@ public class Platform : MonoBehaviour
     public float floatingY;
     public float sinkingY;
     public bool isMoveable;
-    public int isFlashing = 0;
-    public int maxFlash = 30;
+    private float isFlashing = 0.0f;
+    private float maxFlash = 0.1f; // time in seconds to flash
     private bool isMoving;
 
     
@@ -59,9 +59,9 @@ public class Platform : MonoBehaviour
     void Update() {
 	// maybe stop flashing white after impact
 	if (this.isFlashing > 0) {
-	    this.isFlashing -= 1;
+	    this.isFlashing -= Time.deltaTime;
 	}
-	if (this.isFlashing == 1) {
+	if (this.isFlashing <= 0) {
 	    // changing to air deletes the platform, otherwise change color
 	    if (this.material == Materials.Material.Air) {
 		GameObject.Destroy(this.gameObject);
@@ -69,7 +69,6 @@ public class Platform : MonoBehaviour
 		SpriteRenderer sr = this.GetComponent<SpriteRenderer>();
 		sr.color = Materials.MaterialToColor[this.material];
 	    }	    
-
 	}
 	    
 	// move floating or sinking platform
@@ -97,5 +96,11 @@ public class Platform : MonoBehaviour
 	}
 	
 	this.material = newMaterial;		
+    }
+
+    public void StartFlashing() {
+	SpriteRenderer sr = this.gameObject.GetComponent<SpriteRenderer>();
+	sr.color = new Color(1.0f, 1.0f, 1.0f);
+	this.isFlashing = this.maxFlash;
     }
 }

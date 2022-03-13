@@ -1,3 +1,4 @@
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,6 +12,7 @@ public class PickUpable : MonoBehaviour
     public Materials.Material outMaterial;
     public bool isUnlimited;
     public bool addsJump;
+    public float speedIncrease;
     
     // inferred fields
     public Sprite sprite;
@@ -89,6 +91,7 @@ public class PickUpable : MonoBehaviour
 	newPickUpable.inMaterial = this.inMaterial;
 	newPickUpable.outMaterial = this.outMaterial;
 	newPickUpable.addsJump = this.addsJump;
+	newPickUpable.speedIncrease = this.speedIncrease;
 	
 	// position the gameObject
 	go.transform.Translate(this.position);
@@ -97,7 +100,16 @@ public class PickUpable : MonoBehaviour
     }
 
     void OnTriggerEnter2D(Collider2D collider) {
-	// non-breakable items don't break
+	if (collider.gameObject.transform.parent != null) {
+	    // first, teleport if collider is a teleporter
+    	    Teleporter collidedTeleporter = collider.gameObject.transform.parent.GetComponent<Teleporter>();
+    	    if (collidedTeleporter != null) {
+		this.transform.position = new Vector3(collidedTeleporter.destinationX, collidedTeleporter.destinationY, 0.0f); 
+	    }
+	}	    
+
+	 
+	// then see if the item should break on contact
 	if (!this.isBreakable) {
 	    return;
 	}
@@ -113,9 +125,7 @@ public class PickUpable : MonoBehaviour
 
 		
 	// visually indicate impact
-	SpriteRenderer sr = platform.gameObject.GetComponent<SpriteRenderer>();
-	sr.color = new Color(1.0f, 1.0f, 1.0f);
-	platform.isFlashing = platform.maxFlash;
+	platform.StartFlashing();
 	
 	// remove from screen and end early if there is no material transition
 	if (this.inMaterial == Materials.Material.None && this.outMaterial == Materials.Material.None) {
@@ -139,6 +149,12 @@ public class PickUpable : MonoBehaviour
 	if (this.addsJump) {
 	    player.maxJumps += 1;
 	}
+
+	// maybe increase speed
+	if (this.speedIncrease > 0.0f) {
+	    player.maxSpeed += this.speedIncrease;
+    	    player.speedForce += this.speedIncrease * 100f;
+	}
     }
 
     public void OnDrop(Player player) {
@@ -147,5 +163,10 @@ public class PickUpable : MonoBehaviour
 	    player.maxJumps -= 1;
 	}
 
+	// maybe decrease speed
+	if (this.speedIncrease > 0.0f) {
+	    player.maxSpeed -= this.speedIncrease;
+    	    player.speedForce -= this.speedIncrease * 100f;
+	}
     }
 }

@@ -11,11 +11,26 @@ public class Inventory : MonoBehaviour
     public PickUpable[] inventoryItems;
     public GameObject[] iconGameObjects;
 
+    public string desiredItemName;
+    public PickUpable tradedItem;
+	
     public Image inventoryBackground;
     
     public int Add(PickUpable item) {
-	if (this.count >= this.capacity) {
+       	if (this.count >= this.capacity) {
 	    return -1;
+	}
+
+	// check if adding item completes a trade
+	if (item.itemName == this.desiredItemName) {
+	    // move to next line
+	    Dialogue dialogue = this.gameObject.GetComponent<Dialogue>();
+	    if (dialogue != null) {
+		dialogue.Advance();
+	    }
+
+	    // place traded item instead of received item
+	    item = this.tradedItem;
 	}
 
 	this.count += 1;

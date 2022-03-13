@@ -5,7 +5,7 @@ using UnityEngine;
 public class PickUpableContainer : MonoBehaviour
 {
     public Inventory inventory;
-
+    
     private bool isOpen = false;
     
     // Start is called before the first frame update
@@ -15,6 +15,12 @@ public class PickUpableContainer : MonoBehaviour
 	collider.isTrigger = true;
 	this.gameObject.layer = 7;
 
+	// gobble up trade item from screen
+	if (inventory.tradedItem != null && inventory.tradedItem.gameObject != null) {
+	    inventory.tradedItem.RemoveFromScreen();
+	}
+
+	// gobble up inventory items from screen
 	for (int idx = 0; idx < this.inventory.capacity; idx++) {
 	    PickUpable item = this.inventory.inventoryItems[idx];
 	    if (item == null || item.gameObject == null) {

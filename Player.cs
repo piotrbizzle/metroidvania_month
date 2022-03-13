@@ -10,10 +10,10 @@ public class Player : MonoBehaviour
     public Image inventorySelector;
     public int maxJumps = 1; 
     public Sprite[] sprites;
+    public float speedForce = 500.0f;
+    public float maxSpeed = 3.0f;
     
     // constants
-    private float speedForce = 500.0f;
-    private float maxSpeed = 3.0f;
     private float jumpSpeed = 8.0f;
     private float tossForce = 3.0f;
     private float baseGroundBonus = 2.0f;
@@ -113,7 +113,7 @@ public class Player : MonoBehaviour
 	    // give it a bit of a toss
 	    Rigidbody2D inventoryItemRb = addedGo.GetComponent<Rigidbody2D>();
 	    inventoryItemRb.velocity = new Vector2(rb.velocity.x, rb.velocity.y);
-	    float tossForceX = this.facingRight ? 2 * tossForce : -2 * tossForce;;
+	    float tossForceX = this.tossForce * (this.facingRight ? 2 : -2);
 	    inventoryItemRb.AddForce(new Vector2(tossForceX, tossForce), ForceMode2D.Impulse);
 
 	    // add moar spin the faster you're moving
