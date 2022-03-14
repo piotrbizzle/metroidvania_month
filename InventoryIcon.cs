@@ -85,6 +85,8 @@ public class InventoryIcon : MonoBehaviour, IPointerClickHandler, IPointerEnterH
 	labelText.text = this.parentPickUpable.itemName;
 	labelText.alignment = TextAnchor.MiddleCenter;
 
+	this.labelGo.AddComponent<Outline>();
+	
 	this.showingLabel = true;
     }
     

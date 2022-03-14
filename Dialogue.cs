@@ -50,6 +50,8 @@ public class Dialogue : MonoBehaviour
 	dialogueText.text = this.dialogueLines[currentDialogueLine];
 	dialogueText.alignment = TextAnchor.MiddleCenter;
 
+	this.dialogueLineGo.AddComponent<Outline>();
+
 	this.showingText = true;	
     }
 
