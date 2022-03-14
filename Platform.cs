@@ -77,12 +77,12 @@ public class Platform : MonoBehaviour
 	}
 
 	if (Materials.DoesFloat(this.material)) {
-	    this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y + 0.02f, 0.0f);
+	    this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y + 3.0f * Time.deltaTime, 0.0f);
 	    if (this.transform.position.y > this.floatingY) {
 		this.isMoving = false;
 	    }
 	} else {
-	    this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y - 0.02f, 0.0f);
+	    this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y - 3.0f * Time.deltaTime, 0.0f);
 	    if (this.transform.position.y < this.sinkingY) {
 		this.isMoving = false;
 	    }
@@ -90,12 +90,16 @@ public class Platform : MonoBehaviour
     }
 
     public void ChangeMaterial(Materials.Material newMaterial) {
-	// otherwise, update material and color
 	if (Materials.DoesFloat(this.material) != Materials.DoesFloat(newMaterial)) {
 	    this.isMoving = true;
+	}	
+	this.material = newMaterial;
+
+	// progress dialogue if this object has any
+	Dialogue dialogue = this.gameObject.GetComponent<Dialogue>();
+	if (dialogue != null) {
+	    dialogue.Advance();
 	}
-	
-	this.material = newMaterial;		
     }
 
     public void StartFlashing() {

@@ -6,7 +6,6 @@ using UnityEngine;
 public class PickUpable : MonoBehaviour
 {
     // configuration
-    // TODO: maybe subclass instead
     public bool isBreakable;
     public Materials.Material inMaterial;
     public Materials.Material outMaterial;
@@ -101,9 +100,9 @@ public class PickUpable : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D collider) {
 	if (collider.gameObject.transform.parent != null) {
-	    // first, teleport if collider is a teleporter
+	    // first, teleport if collider is a teleporter. breakable objects do not teleport
     	    Teleporter collidedTeleporter = collider.gameObject.transform.parent.GetComponent<Teleporter>();
-    	    if (collidedTeleporter != null) {
+    	    if (collidedTeleporter != null && !this.isBreakable) {
 		this.transform.position = new Vector3(collidedTeleporter.destinationX, collidedTeleporter.destinationY, 0.0f); 
 	    }
 	}	    

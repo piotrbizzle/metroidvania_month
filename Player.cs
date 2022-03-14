@@ -76,7 +76,7 @@ public class Player : MonoBehaviour
 	
 	if (up && !this.jumpKeyDown && this.jumpsRemaining > 0) {
 	    this.jumpsRemaining--;
-	    gameObject.GetComponent<Rigidbody2D>().velocity = new Vector2(gameObject.GetComponent<Rigidbody2D>().velocity.x, jumpSpeed);
+	    this.gameObject.GetComponent<Rigidbody2D>().velocity = new Vector2(gameObject.GetComponent<Rigidbody2D>().velocity.x, jumpSpeed);
 	}
 	this.jumpKeyDown = up;
 
@@ -205,11 +205,9 @@ public class Player : MonoBehaviour
     // Ontriggerstay2d called when this collides with another BoxCollider2D w/ isTrigger=true
     void OnTriggerStay2D(Collider2D collider)
     {	
-	// reset jumps if colldier is a floor
+	// detect if you are on the ground for speed bonus
 	JumpTrigger collidedJumpTrigger = collider.gameObject.GetComponent<JumpTrigger>();
-
 	if (collidedJumpTrigger != null && this.gameObject.GetComponent<Rigidbody2D>().velocity.y < 0.1) {
-	    this.jumpsRemaining = this.maxJumps;
 	    this.onGround = 10;
 	}
 
@@ -225,17 +223,25 @@ public class Player : MonoBehaviour
 		collidedPickUpable.RemoveFromScreen();
 		this.pickingUp = false;
 
-		// add a label if the item is added to selected slot
-		if (this.selectedInventorySlot == addedIdx) {
-		    InventoryIcon inventoryIcon = this.GetComponent<Inventory>().iconGameObjects[addedIdx].GetComponent<InventoryIcon>();
-		    inventoryIcon.AddLabel();
-    		    inventoryIcon.selected = true;;
-		}
+		// select the newly picked up item
+		this.UpdateInventorySelector(addedIdx);
 	    }
 	}
     }
 
     void OnTriggerEnter2D(Collider2D collider) {
+	// bounce if collider is a platform
+	JumpTrigger collidedJumpTrigger = collider.gameObject.GetComponent<JumpTrigger>();
+	if (collidedJumpTrigger != null) {
+	    // reset jumps
+    	    this.jumpsRemaining = this.maxJumps;
+
+	    // maybe bounce
+	    GameObject platformGo = collidedJumpTrigger.gameObject.transform.parent.gameObject;
+	    Platform platform = platformGo.GetComponent<Platform>();
+	    Materials.Bounce(platform.material, this);
+	}
+
 	// open if collider is a container
 	PickUpableContainer collidedContainer = collider.gameObject.GetComponent<PickUpableContainer>();
 	if (collidedContainer != null) {
