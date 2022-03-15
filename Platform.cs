@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Platform : MonoBehaviour
 {
@@ -10,6 +11,7 @@ public class Platform : MonoBehaviour
     public float floatingY;
     public float sinkingY;
     public bool isMoveable;
+    public Text revealText;
     private float isFlashing = 0.0f;
     private float maxFlash = 0.1f; // time in seconds to flash
     private bool isMoving;
@@ -64,6 +66,9 @@ public class Platform : MonoBehaviour
 	if (this.isFlashing <= 0) {
 	    // changing to air deletes the platform, otherwise change color
 	    if (this.material == Materials.Material.Air) {
+		if (this.revealText != null) {
+		    this.revealText.gameObject.SetActive(true);
+		}
 		GameObject.Destroy(this.gameObject);
 	    } else {
 		SpriteRenderer sr = this.GetComponent<SpriteRenderer>();
@@ -99,6 +104,12 @@ public class Platform : MonoBehaviour
 	Dialogue dialogue = this.gameObject.GetComponent<Dialogue>();
 	if (dialogue != null) {
 	    dialogue.Advance();
+	}
+
+	// stop timer if this object has a timer stopper
+	TimerStopper timerStopper = this.gameObject.GetComponent<TimerStopper>();
+	if (timerStopper != null) {
+	    timerStopper.timer.isStopped = true;
 	}
     }
 

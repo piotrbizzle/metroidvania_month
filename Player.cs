@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,7 +18,8 @@ public class Player : MonoBehaviour
     private float jumpSpeed = 8.0f;
     private float tossForce = 3.0f;
     private float baseGroundBonus = 2.0f;
-
+    private float brakeForce = 20.0f;
+    
     // controls
     private bool facingRight = false;
     private bool jumpKeyDown = false;
@@ -73,10 +75,20 @@ public class Player : MonoBehaviour
 	    this.facingRight = true;
 	    this.GetComponent<SpriteRenderer>().sprite = this.sprites[2];
 	}
+	if (!left && !right && this.onGround > 0) {
+	    if (rb.velocity.x > 0) {
+		float newVelocityX = Math.Max(0, rb.velocity.x - Time.deltaTime * this.brakeForce);
+		rb.velocity = new Vector2(newVelocityX, rb.velocity.y);
+	    } else if (rb.velocity.x < 0) {
+		float newVelocityX = Math.Min(0, rb.velocity.x + Time.deltaTime * this.brakeForce);
+		rb.velocity = new Vector2(newVelocityX, rb.velocity.y);
+
+	    }
+	}
 	
 	if (up && !this.jumpKeyDown && this.jumpsRemaining > 0) {
 	    this.jumpsRemaining--;
-	    this.gameObject.GetComponent<Rigidbody2D>().velocity = new Vector2(gameObject.GetComponent<Rigidbody2D>().velocity.x, jumpSpeed);
+	    this.gameObject.GetComponent<Rigidbody2D>().velocity = new Vector2(rb.velocity.x, jumpSpeed);
 	}
 	this.jumpKeyDown = up;
 

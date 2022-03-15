@@ -65,7 +65,7 @@ public class Dialogue : MonoBehaviour
     }
 
     public void Advance() {
-	if (this.currentDialogueLine >= this.dialogueLines.Length) {
+	if (this.currentDialogueLine >= this.dialogueLines.Length - 1) {
 	    return;
 	}
 
