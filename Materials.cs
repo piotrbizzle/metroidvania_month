@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Materials : MonoBehaviour
 {
-    public static float bounceSpeed = 16.0f;
+    public static float bounceSpeed = 30.0f;
     
     public enum Material {None, Air, Copper, Tin, Lead, Stone, Wood, Gold, Pumice, Goo};
 

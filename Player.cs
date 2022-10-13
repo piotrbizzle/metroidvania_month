@@ -11,20 +11,18 @@ public class Player : MonoBehaviour
     public Image inventorySelector;
     public int maxJumps = 1; 
     public Sprite[] sprites;
-    public float speedForce = 500.0f;
-    public float maxSpeed = 3.0f;
-    
-    // constants
-    private float jumpSpeed = 8.0f;
-    private float tossForce = 3.0f;
-    private float baseGroundBonus = 2.0f;
-    private float brakeForce = 20.0f;
+    public float acceleration = 20.0f;
+    public float maxSpeed = 10.0f;
+    public float jumpSpeed = 12.0f;
+    public float tossForce = 3.0f;  
+    public float deceleration = 20.0f;
     
     // controls
     private bool facingRight = false;
     private bool jumpKeyDown = false;
     private int jumpsRemaining = 0;
     private int onGround = 0;
+    private float speed = 0;
     
     private bool pickUpKeyDown = false;
     private bool pickingUp = false;
@@ -63,32 +61,28 @@ public class Player : MonoBehaviour
 	bool five = Input.GetKey("5");
 	
 	// movement
-	Rigidbody2D rb = this.gameObject.GetComponent<Rigidbody2D>();
-	float groundBonus = this.onGround > 0 ? this.baseGroundBonus : 1.0f;
-	if (left && !right && rb.velocity.x > -1 * maxSpeed * groundBonus) {
-	    rb.AddForce(new Vector2(-1 * speedForce * groundBonus * Time.deltaTime, 0));
+	if (left && !right && this.speed > -1 * maxSpeed) {
+	    this.speed -= acceleration * Time.deltaTime;
 	    this.facingRight = false;
 	    this.GetComponent<SpriteRenderer>().sprite = this.sprites[0];
 	}
-	if (right && !left && rb.velocity.x < maxSpeed * groundBonus) {
-	    rb.AddForce(new Vector2(speedForce * Time.deltaTime * groundBonus, 0));
+	if (right && !left && this.speed < maxSpeed) {
+	    this.speed += acceleration * Time.deltaTime;
 	    this.facingRight = true;
 	    this.GetComponent<SpriteRenderer>().sprite = this.sprites[2];
-	}
+	}	
 	if (!left && !right && this.onGround > 0) {
-	    if (rb.velocity.x > 0) {
-		float newVelocityX = Math.Max(0, rb.velocity.x - Time.deltaTime * this.brakeForce);
-		rb.velocity = new Vector2(newVelocityX, rb.velocity.y);
-	    } else if (rb.velocity.x < 0) {
-		float newVelocityX = Math.Min(0, rb.velocity.x + Time.deltaTime * this.brakeForce);
-		rb.velocity = new Vector2(newVelocityX, rb.velocity.y);
-
+	    if (this.speed > 0) {
+		this.speed = Math.Max(0, this.speed - deceleration * Time.deltaTime);
+	    } else if (this.speed < 0) {
+		this.speed = Math.Min(0, this.speed + deceleration * Time.deltaTime);
 	    }
 	}
-	
+	this.transform.position += new Vector3(Time.deltaTime * this.speed, 0, 0);
+		
 	if (up && !this.jumpKeyDown && this.jumpsRemaining > 0) {
 	    this.jumpsRemaining--;
-	    this.gameObject.GetComponent<Rigidbody2D>().velocity = new Vector2(rb.velocity.x, jumpSpeed);
+	    this.gameObject.GetComponent<Rigidbody2D>().velocity = new Vector2(0, jumpSpeed);
 	}
 	this.jumpKeyDown = up;
 
@@ -124,13 +118,13 @@ public class Player : MonoBehaviour
 
 	    // give it a bit of a toss
 	    Rigidbody2D inventoryItemRb = addedGo.GetComponent<Rigidbody2D>();
-	    inventoryItemRb.velocity = new Vector2(rb.velocity.x, rb.velocity.y);
-	    float tossForceX = this.tossForce * (this.facingRight ? 2 : -2);
+	    inventoryItemRb.velocity = new Vector2(this.speed, this.GetComponent<Rigidbody2D>().velocity.y);
+	    float tossForceX = this.tossForce * (this.facingRight ? 3 : -3);
 	    inventoryItemRb.AddForce(new Vector2(tossForceX, tossForce), ForceMode2D.Impulse);
 
 	    // add moar spin the faster you're moving
 	    float tossTorqueModifier = this.facingRight ? 5.0f : -5.0f;
-	    inventoryItemRb.AddTorque(tossTorqueModifier * rb.velocity.x);
+	    inventoryItemRb.AddTorque(tossTorqueModifier * this.speed);
 
 	    // update selector to the next non-empty slot if there is one
 	    int nextFullSlot = this.GetComponent<Inventory>().GetNextFullSlot(this.selectedInventorySlot);
@@ -271,7 +265,8 @@ public class Player : MonoBehaviour
 	    // teleport if collider is a teleporter
     	    Teleporter collidedTeleporter = collider.gameObject.transform.parent.GetComponent<Teleporter>();
     	    if (collidedTeleporter != null) {
-		this.transform.position = new Vector3(collidedTeleporter.destinationX, collidedTeleporter.destinationY, 0.0f); 
+		this.transform.position = new Vector3(collidedTeleporter.destinationX, collidedTeleporter.destinationY, 0.0f);
+		this.speed = 0;
 	    }
 	}
     }

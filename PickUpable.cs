@@ -11,7 +11,6 @@ public class PickUpable : MonoBehaviour
     public Materials.Material outMaterial;
     public bool isUnlimited;
     public bool addsJump;
-    public float speedIncrease;
     
     // inferred fields
     public Sprite sprite;
@@ -90,7 +89,6 @@ public class PickUpable : MonoBehaviour
 	newPickUpable.inMaterial = this.inMaterial;
 	newPickUpable.outMaterial = this.outMaterial;
 	newPickUpable.addsJump = this.addsJump;
-	newPickUpable.speedIncrease = this.speedIncrease;
 	
 	// position the gameObject
 	go.transform.Translate(this.position);
@@ -148,24 +146,12 @@ public class PickUpable : MonoBehaviour
 	if (this.addsJump) {
 	    player.maxJumps += 1;
 	}
-
-	// maybe increase speed
-	if (this.speedIncrease > 0.0f) {
-	    player.maxSpeed += this.speedIncrease;
-    	    player.speedForce += this.speedIncrease * 100f;
-	}
     }
 
     public void OnDrop(Player player) {
 	// maybe remove jumps
 	if (this.addsJump) {
 	    player.maxJumps -= 1;
-	}
-
-	// maybe decrease speed
-	if (this.speedIncrease > 0.0f) {
-	    player.maxSpeed -= this.speedIncrease;
-    	    player.speedForce -= this.speedIncrease * 100f;
 	}
     }
 }
